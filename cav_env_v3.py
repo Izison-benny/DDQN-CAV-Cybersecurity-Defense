@@ -29,9 +29,9 @@ MODULE_CRITICALITY = {
 }
 
 MODULE_TO_VERSIONS = {
-    'Perception': ['C++-v1', 'C++-v2'],
-    'Navigation': ['Java-v1', 'Java-v2'],
-    'Diagnostics': ['Python-v1', 'Python-v2', 'Java-v2']
+    'Perception': ['VNF-C++-v1', 'VNF-C++-v2'],
+    'Navigation': ['VNF-Java-v1', 'VNF-Java-v2'],
+    'Diagnostics': ['VNF-Python-v1', 'VNF-Python-v2', 'VNF-Java-v2']
 }
 
 CVSS_SCORES = {
