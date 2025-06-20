@@ -22,10 +22,10 @@ reward_log, epsilon_log = [], []
 switch_log, intrusion_log, qos_log = [], [], []
 reward_components_log = []
 security_log, security_level_log = [], []
-zero_day_log, defense_log = [], []
+complex_log, defense_log = [], []
 
 total_intrusions = 0
-total_zero_days = 0
+total_complex_intrusions = 0
 total_steps = 0
 total_attack_attempts = 0
 
@@ -37,7 +37,7 @@ for ep in range(episodes):
     episode_reward = 0
     done = False
     episode_intrusions = 0
-    episode_zero_days = 0
+    episode_complex = 0
     episode_qos = 0
     step_count = 0
     episode_attack_attempts = 0
@@ -50,8 +50,8 @@ for ep in range(episodes):
 
         if info.get('attack_status') == 1:
             episode_intrusions += 1
-            if info.get('attack_type') == 'zero-day':
-                episode_zero_days += 1
+            if info.get('attack_type') == 'complex':
+                episode_complex += 1
         elif info.get('attack_type') == 'defended':
             episode_defended += 1
         if info.get('attack_type') != 'none':
@@ -70,7 +70,7 @@ for ep in range(episodes):
             reward_components_log.append(info["reward_components"])
 
     total_intrusions += episode_intrusions
-    total_zero_days += episode_zero_days
+    total_complex_intrusions += episode_complex
     total_attack_attempts += episode_attack_attempts
     total_steps += step_count
 
@@ -83,7 +83,7 @@ for ep in range(episodes):
     switch_log.append(info.get("switches", 0))
     intrusion_log.append(episode_intrusions)
     qos_log.append(episode_qos)
-    zero_day_log.append(episode_zero_days)
+    complex_log.append(episode_complex)
     defense_log.append(episode_defended)
 
     agent.update_epsilon()
@@ -101,15 +101,10 @@ for ep in range(episodes):
               f"Switches: {avg_switches:.1f} | "
               f"Security Level: {security_level}")
 
-# =======================================
-# Training plot Metrics if applicable
-# ========================================
-
 # ======================
 # Save the Final Model
 # ======================
 agent.save("ddqn_model_final.pth")
-
 
 # ======================
 # Print Final Summary
@@ -118,7 +113,7 @@ total_reward = sum(reward_log)
 avg_qos = np.mean(qos_log)
 avg_switches = np.mean(switch_log)
 security_rate = (total_attack_attempts - total_intrusions) / total_attack_attempts if total_attack_attempts > 0 else 1.0
-zday_rate = total_zero_days / total_intrusions if total_intrusions > 0 else 0
+complex_rate = total_complex_intrusions / total_intrusions if total_intrusions > 0 else 0
 mtbi = total_steps / total_intrusions if total_intrusions > 0 else float('inf')
 avg_security_level = max(set(security_level_log), key=security_level_log.count)
 
@@ -127,7 +122,7 @@ print(f"→ Total Reward:        {total_reward:>10.1f}")
 print(f"→ Security Rate:       {security_rate:>10.2%} ({total_attack_attempts} attacks)")
 print(f"→ QoS Uptime:          {avg_qos:>10.2%}")
 print(f"→ Intrusions:          {total_intrusions:>10} ({(total_intrusions/total_steps):.2%})")
-print(f"→ Zero-Day Intrusions: {total_zero_days:>10} ({zday_rate:.1%})")
+print(f"→ Complex Intrusions:  {total_complex_intrusions:>10} ({complex_rate:.1%})")
 print(f"→ Defended Attacks:    {total_attack_attempts - total_intrusions:>10}")
 print(f"→ MTBI:                {mtbi:>10.1f} steps")
 print(f"→ Avg Switches:        {avg_switches:>10.1f}/episode")
@@ -146,7 +141,7 @@ ddqn_df = pd.DataFrame({
     'reward': reward_log,
     'qos_rate': qos_log,
     'intrusions': intrusion_log,
-    'zero_day_intrusions': zero_day_log,
+    'complex_intrusions': complex_log,
     'defended': defense_log,
     'switches': switch_log,
     'security_rate': security_log,
@@ -163,3 +158,5 @@ if reward_components_log:
     print(" Reward components saved to results/reward_components_log.csv")
 
 print(" Training complete.")
+"""
+
