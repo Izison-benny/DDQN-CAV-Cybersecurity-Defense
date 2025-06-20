@@ -30,12 +30,12 @@ logs = []
 reward_log = []
 switch_log = []
 qos_log = []
-zero_day_log = []  
+complex_log = []  
 security_level_log = []
 
 total_steps = 0
 total_intrusions = 0
-total_zero_days = 0
+total_complex = 0
 total_attack_attempts = 0
 total_reward_all = 0
 
@@ -62,11 +62,10 @@ for episode in range(1, EPISODES + 1):
 
         if info.get("attack_status") == 1:
             total_intrusions += 1
-            if info.get("attack_type") == "zero-day":
-                total_zero_days += 1
+            if info.get("attack_type") == "complex":
+                total_complex += 1
 
-        #  Log 1 or 0 for each step to track zero-day per step
-        zero_day_log.append(1 if info.get("attack_type") == "zero-day" else 0)
+        complex_log.append(1 if info.get("attack_type") == "complex" else 0)
 
         if info.get("attack_status") in [0, 1]:
             total_attack_attempts += 1
@@ -78,9 +77,7 @@ for episode in range(1, EPISODES + 1):
     total_reward_all += total_reward
 
     avg_reward = total_reward_all / episode
-
-    #  Compute per-episode zero-days correctly
-    episode_zero_days = sum(zero_day_log[-step:])
+    episode_complex = sum(complex_log[-step:])
 
     logs.append({
         "Episode": episode,
@@ -89,7 +86,7 @@ for episode in range(1, EPISODES + 1):
         "Security": 100.0 * (1 - (total_intrusions / max(1, total_attack_attempts))),
         "QoS": info.get("qos", 0.0) * 100,
         "Switches": info.get("switches", 0),
-        "zero_day_intrusions": episode_zero_days,
+        "complex_intrusions": episode_complex,
         "SecurityLevel": info.get("security_level", "UNKNOWN")
     })
 
@@ -112,7 +109,7 @@ intrusion_rate = 100 - final['Security']
 avg_qos = np.mean(qos_log)
 avg_switches = np.mean(switch_log)
 security_rate = (total_attack_attempts - total_intrusions) / total_attack_attempts if total_attack_attempts > 0 else 1.0
-zday_rate = total_zero_days / total_intrusions if total_intrusions > 0 else 0
+complex_rate = total_complex / total_intrusions if total_intrusions > 0 else 0
 mtbi = total_steps / total_intrusions if total_intrusions > 0 else float('inf')
 avg_security_level = max(set(security_level_log), key=security_level_log.count)
 
@@ -121,7 +118,7 @@ print(f"→ Total Reward:         {sum(reward_log):>10.2f}")
 print(f"→ Security Rate:        {security_rate:>10.2%} ({total_attack_attempts} attacks)")
 print(f"→ QoS Uptime:           {avg_qos:>10.2%}")
 print(f"→ Intrusions:           {total_intrusions:>10} ({(total_intrusions/total_steps):.2%})")
-print(f"→ Zero-Day Intrusions:  {total_zero_days:>10} ({zday_rate:.1%})")
+print(f"→ Complex Intrusions:   {total_complex:>10} ({complex_rate:.1%})")
 print(f"→ Defended Attacks:     {total_attack_attempts - total_intrusions:>10}")
 print(f"→ MTBI:                 {mtbi:>10.1f} steps")
 print(f"→ Avg Switches:         {avg_switches:>10.1f}/episode")
