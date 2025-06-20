@@ -8,7 +8,7 @@ A simulation environment for testing reinforcement learning agents in cybersecur
 Features:
 - 8-dimensional observation space including intrusion, QoS, and resource metrics
 - Modular MultiDiscrete action space for language switching per software module
-- Attack simulation based on CVSS risk profiles (with zero-day logic)
+- Attack simulation based on CVSS risk profiles
 - Reward function integrates risk, resource, switching penalties, and proactive defense bonuses
 """
 
@@ -17,12 +17,13 @@ import gym
 from gym import spaces
 import numpy as np
 import random
+from collections import deque
 from typing import Dict, Tuple, Any
 
 # ========================
 # Definitions
 # ========================
-MODULE_CRITICALITY = {
+MODULE_CRITICALITY: Dict[str, float] = {
     'Perception': 1.5,
     'Navigation': 1.0,
     'Diagnostics': 0.8
@@ -51,7 +52,7 @@ class CAVExecutionEnv(gym.Env):
 
     MAX_SWITCHES = 12
     BASE_INTRUSION_PENALTY = -7.5
-    BASE_ZDAY_PENALTY = -15.0
+    BASE_COMPLEX_PENALTY = -15.0
     RISK_PENALTY_FACTOR = 0.03
     RESOURCE_PENALTY_FACTOR = 0.02
     DEFENSE_REWARD = 2.5
@@ -62,7 +63,7 @@ class CAVExecutionEnv(gym.Env):
     REWARD_SCALE_FACTOR = 0.2
     SECURITY_BONUS_FACTOR = 0.8
     SWITCH_SECURITY_BONUS = 0.7
-    ZDAY_PROB = 0.015
+    COMPLEX_INTRUSION_PROB = 0.015
 
     def __init__(self, max_steps: int = 300):
         super(CAVExecutionEnv, self).__init__()
@@ -81,7 +82,7 @@ class CAVExecutionEnv(gym.Env):
         self.last_action = [0 for _ in self.module_names]
         self.current_action = [0 for _ in self.module_names]
         self.intrusion_counter = 0
-        self.zero_day_counter = 0
+        self.complex_intrusion_counter = 0
         self.attack_attempts = 0
         self.defended_attacks = 0
         return self._get_obs()
@@ -91,7 +92,7 @@ class CAVExecutionEnv(gym.Env):
             self.current_step / self.max_steps,
             self.switches / self.MAX_SWITCHES,
             self.intrusion_counter / max(1, self.current_step),
-            self.zero_day_counter / max(1, self.current_step),
+            self.complex_intrusion_counter / max(1, self.current_step),
             self.attack_attempts / max(1, self.current_step),
             self.defended_attacks / max(1, self.attack_attempts),
             self._normalized_resource_cost(),
@@ -121,13 +122,13 @@ class CAVExecutionEnv(gym.Env):
         avg_risk = self._avg_cvss_score()
         prob = min(self.MAX_ATTACK_PROB, self.BASE_ATTACK_PROB + avg_risk**1.5 / 250)
 
-        if random.random() < self.ZDAY_PROB:
+        if random.random() < self.COMPLEX_INTRUSION_PROB:
             self.intrusion_counter += 1
-            self.zero_day_counter += 1
-            return 1, 'zero-day'
+            self.complex_intrusion_counter += 1
+            return 1, 'complex'
         elif random.random() < prob:
             self.intrusion_counter += 1
-            return 1, 'known'
+            return 1, 'basic'
         else:
             self.defended_attacks += 1
             return 0, 'defended'
@@ -184,8 +185,8 @@ class CAVExecutionEnv(gym.Env):
                 security_bonus += self.SWITCH_SECURITY_BONUS * (prev_config_risk - current_risk)
 
         if attacked:
-            if attack_type == 'zero-day':
-                attack_penalty = self.BASE_INTRUSION_PENALTY + self.BASE_ZDAY_PENALTY
+            if attack_type == 'complex':
+                attack_penalty = self.BASE_INTRUSION_PENALTY + self.BASE_COMPLEX_PENALTY
             else:
                 attack_penalty = self.BASE_INTRUSION_PENALTY
             proactive_bonus = 0.0
@@ -217,7 +218,7 @@ class CAVExecutionEnv(gym.Env):
         if mode == 'human':
             print(f"\\n=== Step {self.current_step}/{self.max_steps} ===")
             print(f"Switches: {self.switches}/{self.MAX_SWITCHES}")
-            print(f"Intrusions: {self.intrusion_counter} | Zero-Day: {self.zero_day_counter}")
+            print(f"Intrusions: {self.intrusion_counter} | Complex: {self.complex_intrusion_counter}")
             print(f"Attack Attempts: {self.attack_attempts} | Defended: {self.defended_attacks}")
             print(f"Security Level: {self._evaluate_security_level()}")
         elif mode == 'system':
@@ -231,3 +232,4 @@ if __name__ == "__main__":
 '''
 
 # Save the file (save path)
+print(" cav_env_v3.py saved successfully!")
