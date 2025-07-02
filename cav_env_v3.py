@@ -36,15 +36,15 @@ MODULE_TO_VERSIONS = {
 }
 
 CVSS_SCORES = {
-    'C++-v1': 8.8, 'C++-v2': 7.1,
-    'Python-v1': 7.8, 'Python-v2': 5.5,
-    'Java-v1': 7.2, 'Java-v2': 9.8
+    'VNF-C++-v1': 8.8, 'VNF-C++-v2': 7.1,
+    'VNF-Python-v1': 7.8, 'VNF-Python-v2': 5.5,
+    'VNF-Java-v1': 7.2, 'VNF-Java-v2': 9.8
 }
 
 RESOURCE_PROFILES = {
-    'C++-v1': (4, 8, 32), 'C++-v2': (3, 6, 24),
-    'Python-v1': (2, 4, 16), 'Python-v2': (1, 2, 8),
-    'Java-v1': (3, 6, 24), 'Java-v2': (2, 4, 16)
+    'VNF-C++-v1': (4, 8, 32), 'VNF-C++-v2': (3, 6, 24),
+    'VNF-Python-v1': (2, 4, 16), 'VNF-Python-v2': (1, 2, 8),
+    'VNF-Java-v1': (3, 6, 24), 'VNF-Java-v2': (2, 4, 16)
 }
 
 class CAVExecutionEnv(gym.Env):
